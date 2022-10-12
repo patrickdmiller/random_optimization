@@ -27,11 +27,6 @@ _sa_args = {
     "max_attempts":100,
     "state_fitness_callback":delta_fn_target_reached
 }
-
-
-# cd ptdraft
-# python -m simulations.life.life
-
 #queue, problem, optimizer
 def worker(name, q, p, f, f_type, **kwargs):
   t = perf_counter()
@@ -91,5 +86,5 @@ if __name__ == '__main__':
   output_objects = Output_Utility.to_output_objects(results)
   print(output_objects['sa'])
   Output_Utility.pickle(output_objects, os.path.join(_path, 'picklin.p'))
-  bleh = Output_Utility.load_pickle(os.path.join(_path, 'picklin.p'))
-  print(bleh['sa'][0].iterations)
+  # bleh = Output_Utility.load_pickle(os.path.join(_path, 'picklin.p'))
+  # print(bleh['sa'][0].iterations)
