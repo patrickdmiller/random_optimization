@@ -9,9 +9,7 @@ class Output:
     self.best_state  = results['result'][0]
     self.best_iteration = len(results['result'][2])
     self.iterations = results['result'][2]
-    # print(self.raw_results)
-  
-  
+
   def __repr__(self):
     return f'{self.name}, best:{self.best_fitness}, {self.best_state}, it:{self.best_iteration}\n'
   
@@ -31,7 +29,6 @@ class Output_Utility:
       'ga':GA_Output
     }
     for f_type in results:
-      print("adding output for", f_type, len(results[f_type]))
       if f_type not in types:
         raise "Invalid Type"+f_type
       for o in results[f_type]:
