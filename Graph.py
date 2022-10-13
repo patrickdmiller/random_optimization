@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from Output import *
-
 
 #pass in a search object to filter what is graphed
 def graph_generate(data, which = ['sa','ga'], search=None):
@@ -17,5 +15,19 @@ def graph_generate(data, which = ['sa','ga'], search=None):
       if search and search.run(d):
         ax1.plot(np.arange(0,len( d.iterations[:,0])), d.iterations[:,0],  label=d.name )
       # ax2.plot(np.arange(0,len( d.iterations[:,1])), d.iterations[:,1])
+
+  fig.legend(loc="upper right")
+  
+def graph_generate_single(experiment, search=None):
+  
+  fig, ax1 = plt.subplots()
+  plt.rcParams["figure.figsize"] = (10,5)
+
+  ax2 = ax1.twinx()
+  data = experiment.results
+  for d in data:
+    if search and search.run(d):
+      ax1.plot(np.arange(0,len( d.iterations[:,0])), d.iterations[:,0],  label=d.name )
+    # ax2.plot(np.arange(0,len( d.iterations[:,1])), d.iterations[:,1])
 
   fig.legend(loc="upper right")
