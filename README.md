@@ -27,7 +27,7 @@ see any ```run.py``` file to see how to define an experiment with custom tags, p
 
 A jupyter notebook is included in /jupyter that loads the results 
 
-A custom graphing method will plot results from any experiment (by loading the appropriate pickle file). Make sure you set your ```mlr_src``` and ```mlr_data``` variables to load the pickled result objects. 
+A custom graphing method will plot results from any experiment (by loading the appropriate pickle file). Make sure you set your ```mlr_src``` and ```mlr_data``` variables to load the pickled result objects. Note that the notebook needs access to the src of this repo and the pickle files you save from each experiment.
 
 The graphing method takes a search parameter (defined in Experiments.py) to make navigating the plots easier. For example, to view GA results of nqueens and filter the plot to only solutiosn for 20 queens with min-elites set to 1:
 ```python
