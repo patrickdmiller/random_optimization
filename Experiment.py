@@ -128,7 +128,8 @@ class Experiment(ABC):
     pass
 
   def delta_fn_target_reached(self, **kwargs):
-    if kwargs['fitness'] == self.target_fitness:
+    if kwargs['fitness'] == kwargs['user_data'][0]:
+    # if kwargs['fitness'] == self.target_fitness:
       return False
     return True
   
@@ -185,7 +186,7 @@ class Experiment(ABC):
   
   
 class SAExperiment(Experiment):
-  def __init__(self, name="sa", curve=True, fevals=True, random_state=42,max_attempts=[1000], schedules=['arith', 'geom', 'exp'], max_concurrent_cpu = 4, target_fitness=0):
+  def __init__(self, name="sa", curve=True, fevals=True, random_state=42,max_attempts=[1000], schedules=['arith', 'geom', 'exp'], max_concurrent_cpu = 4):
     self.name = name
     self.f_type="sa"
     self.curve = curve
@@ -195,11 +196,10 @@ class SAExperiment(Experiment):
     self.schedules = schedules
     self.schedule_fns = {'arith':mlr.ArithDecay, 'geom':mlr.GeomDecay, 'exp':mlr.ExpDecay}
     self.max_concurrent_cpu = max_concurrent_cpu
-    self.target_fitness = target_fitness
     self.to_run = []
     self.results = []
 
-  def enqueue_jobs(self, problem, tags = {}, name_extra=""):
+  def enqueue_jobs(self, problem, tags = {}, name_extra="", target_fitness=[0]):
     for _max_attempt in self.max_attempts:
       for _schedule in self.schedules:        
         #build the name
@@ -220,13 +220,14 @@ class SAExperiment(Experiment):
             "max_attempts":_max_attempt,
             "max_iters":10000,
             "schedule":self.schedule_fns[_schedule](),
-            "state_fitness_callback":self.delta_fn_target_reached
+            "state_fitness_callback":self.delta_fn_target_reached,
+            "callback_user_info":[target_fitness]
           }
         }
         self.to_run.append(run_obj)
         
 class GAExperiment(Experiment):
-  def __init__(self, name="ga", curve=True, random_state=42, max_attempts=[1000], pop_sizes=[100], mutation_probs = [0.1], max_concurrent_cpu = 4, target_fitness=0, minimum_elites=[0,1]):
+  def __init__(self, name="ga", curve=True, random_state=42, max_attempts=[1000], pop_sizes=[100], mutation_probs = [0.1], max_concurrent_cpu = 4,  minimum_elites=[0,1]):
     self.name = name
     self.f_type="ga"
     self.curve = curve
@@ -236,11 +237,10 @@ class GAExperiment(Experiment):
     self.max_concurrent_cpu = max_concurrent_cpu
     self.mutation_probs = mutation_probs
     self.minimum_elites = minimum_elites
-    self.target_fitness = target_fitness
     self.to_run = []
     self.results = []
 
-  def enqueue_jobs(self, problem, tags = {}, name_extra=""):
+  def enqueue_jobs(self, problem, tags = {}, name_extra="", target_fitness = [0]):
     for _max_attempt in self.max_attempts:
       for _pop_size in self.pop_sizes:       
         for _mutation_prob in self.mutation_probs: 
@@ -263,13 +263,14 @@ class GAExperiment(Experiment):
                 "pop_size":_pop_size,
                 "mutation_prob":_mutation_prob,
                 "minimum_elites":_minimum_elite,
-                "state_fitness_callback":self.delta_fn_target_reached
+                "state_fitness_callback":self.delta_fn_target_reached,
+                "callback_user_info":[target_fitness]
               }
             }
             self.to_run.append(run_obj)
 
 class MIMExperiment(Experiment):
-  def __init__(self, name="mim", curve=True, random_state=42, max_attempts=[1000], pop_sizes=[100], keep_pcts = [0.2], max_concurrent_cpu = 4, target_fitness=0):
+  def __init__(self, name="mim", curve=True, random_state=42, max_attempts=[1000], pop_sizes=[100], keep_pcts = [0.2], max_concurrent_cpu = 4):
     self.name = name
     self.f_type="mim"
     self.curve = curve
@@ -278,11 +279,10 @@ class MIMExperiment(Experiment):
     self.pop_sizes = pop_sizes
     self.max_concurrent_cpu = max_concurrent_cpu
     self.keep_pcts = keep_pcts
-    self.target_fitness = target_fitness
     self.to_run = []
     self.results = []
 
-  def enqueue_jobs(self, problem, tags = {}, name_extra=""):
+  def enqueue_jobs(self, problem, tags = {}, name_extra="", target_fitness = [0]):
     for _max_attempt in self.max_attempts:
       for _pop_size in self.pop_sizes:       
         for _keep_pct in self.keep_pcts:
@@ -303,13 +303,14 @@ class MIMExperiment(Experiment):
               "max_attempts":_max_attempt,
               "pop_size":_pop_size,
               "keep_pct":_keep_pct,
-              "state_fitness_callback":self.delta_fn_target_reached
+              "state_fitness_callback":self.delta_fn_target_reached,
+              "callback_user_info":[target_fitness]
             }
           }
           self.to_run.append(run_obj)
 
 class RHCExperiment(Experiment):
-  def __init__(self, name="rhc", curve=True, random_state=42,max_attempts=[1000], restarts=[1], max_concurrent_cpu = 4, target_fitness=0):
+  def __init__(self, name="rhc", curve=True, random_state=42,max_attempts=[1000], restarts=[1], max_concurrent_cpu = 4):
     self.name = name
     self.f_type="rhc"
     self.curve = curve
@@ -317,11 +318,11 @@ class RHCExperiment(Experiment):
     self.max_attempts = max_attempts
     self.restarts=restarts
     self.max_concurrent_cpu = max_concurrent_cpu
-    self.target_fitness = target_fitness
     self.to_run = []
     self.results = []
 
-  def enqueue_jobs(self, problem, tags = {}, name_extra=""):
+  def enqueue_jobs(self, problem, tags = {}, name_extra="", target_fitness=[0]):
+    
     for _max_attempt in self.max_attempts:
       for _restarts in self.restarts:        
         #build the name
@@ -341,7 +342,7 @@ class RHCExperiment(Experiment):
             "max_attempts":_max_attempt,
             "restarts":_restarts,
             "state_fitness_callback":self.delta_fn_target_reached,
-            "callback_user_info":[_restarts]
+            "callback_user_info":[target_fitness]
           }
         }
         self.to_run.append(run_obj)
