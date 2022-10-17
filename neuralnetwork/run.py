@@ -24,7 +24,7 @@ if __name__ == '__main__':
   
   
   framingham = Framingham(verbose=True, oversample=True)
-  # framingham.generate_validation()
+  framingham.generate_validation()
   
   if 'sa' in _f_to_run:
 
