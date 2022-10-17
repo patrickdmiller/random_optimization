@@ -23,24 +23,24 @@ if __name__ == '__main__':
       _f_to_run.append(arg_f)
   else:
     raise Exception("no -f supplied")
-
+  _max_attempts =100
   _seed = 42
   _path = os.path.join(SHARED_STORAGE_PATH, 'nqueens/')
-  _queens = [8,12,16,20]
+  _queens = [8,12,16,20,24]
   _concurrent_proc_limit = MAX_CONCURRENT_CPU
   if 'sa' in _f_to_run:
-    sae = SAExperiment(max_concurrent_cpu=_concurrent_proc_limit)
+    sae = SAExperiment(max_concurrent_cpu=_concurrent_proc_limit, max_attempts=[_max_attempts])
     for q in _queens:
       sae.enqueue_jobs(
         problem=mlr.QueensGenerator().generate(seed=_seed, size=q),
         tags={'q':q},
-        name_extra=f'q{q}'
+        name_extra=f'q{q}',
       )
     sae.parallel_run() 
     print("writing pickle")
     sae.pickle_save(_path, PICKLE_PREFIX)
   if 'mim' in _f_to_run:
-    mime = MIMExperiment(max_concurrent_cpu=_concurrent_proc_limit, pop_sizes=[100,200,400,800], keep_pcts=[0.1,0.2,0.3])
+    mime = MIMExperiment(max_concurrent_cpu=_concurrent_proc_limit, pop_sizes=[100,200,300], keep_pcts=[0.2,0.25,0.5], max_attempts=[_max_attempts])
 
     for q in _queens:
       mime.enqueue_jobs(
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     print("writing pickle")
     mime.pickle_save(_path, PICKLE_PREFIX)
   if 'rhc' in _f_to_run:
-    rhce = RHCExperiment(max_concurrent_cpu=_concurrent_proc_limit, restarts=[1,2,5,10,20])
+    rhce = RHCExperiment(max_concurrent_cpu=_concurrent_proc_limit, restarts=[1,2,5,10,20], max_attempts=[_max_attempts])
 
     for q in _queens:
       rhce.enqueue_jobs(
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     print("writing pickle")
     rhce.pickle_save(_path, PICKLE_PREFIX)
   if 'ga' in _f_to_run:
-    gae = GAExperiment(max_concurrent_cpu=_concurrent_proc_limit, pop_sizes=[100,200,400,800], mutation_probs=[0.1,0.2,0.3])
+    gae = GAExperiment(max_concurrent_cpu=_concurrent_proc_limit, pop_sizes=[100,200,300], mutation_probs=[0.1,0.2],max_attempts=[_max_attempts], minimum_elites=[0])
     for q in _queens:
       gae.enqueue_jobs(
         problem=mlr.QueensGenerator().generate(seed=_seed, size=q),

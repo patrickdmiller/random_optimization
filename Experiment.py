@@ -35,12 +35,18 @@ class TagFilter(Filter):
       print("invalid operator")
     print("invalid tag")
     return False
-  
+
+class ConvergeFilter(Filter):
+  def __init__(self, value=0):
+    self.value = value
+
+  def apply(self, output):
+    return output.best_fitness ==self.value
+ 
 class Search:
   def __init__(self):
     self.filters = []
 
-  
   def run(self, output, andor = 'and'):
     if andor == 'or':
       for f in self.filters:
@@ -54,7 +60,12 @@ class Search:
           return False
       return True        
     
-
+  def findall(self, data, andor= 'and'):
+    out = []
+    for d in data.results:
+      if self.run(d, andor = andor):
+        out.append(d)
+    return out
 
 
 #we could just parse the results raw but this makes sure we're conforming to some kind of formatting standard
@@ -62,7 +73,7 @@ class ExperimentResult:
   @classmethod #factory
   def generate(cls, results):
     return list(map(lambda x: ExperimentResult(x), results))
-    
+  
     
   def __init__(self, result):
     self.raw = result
@@ -244,15 +255,15 @@ class GAExperiment(Experiment):
     for _max_attempt in self.max_attempts:
       for _pop_size in self.pop_sizes:       
         for _mutation_prob in self.mutation_probs: 
-          for _minimum_elite in self.minimum_elites:
+          # for _minimum_elite in self.minimum_elites:
             #build the name
             n = self.name
             if name_extra:
               n+="_"+name_extra
 
             run_obj = {
-              "name":f'{n}_pop{_pop_size}_m{_max_attempt}_mut{_mutation_prob}_minelite{_minimum_elite}',
-              "tags":{**{'pop':_pop_size, 'mut':_mutation_prob, 'minelite':_minimum_elite, 'm':_max_attempt}, **tags},
+              "name":f'{n}_pop{_pop_size}_m{_max_attempt}_mut{_mutation_prob}',
+              "tags":{**{'pop':_pop_size, 'mut':_mutation_prob,  'm':_max_attempt}, **tags},
               "p":problem,
               "f":mlr.genetic_alg,
               "f_type":self.f_type,
@@ -262,7 +273,6 @@ class GAExperiment(Experiment):
                 "max_attempts":_max_attempt,
                 "pop_size":_pop_size,
                 "mutation_prob":_mutation_prob,
-                "minimum_elites":_minimum_elite,
                 "state_fitness_callback":self.delta_fn_target_reached,
                 "callback_user_info":[target_fitness]
               }
@@ -270,7 +280,7 @@ class GAExperiment(Experiment):
             self.to_run.append(run_obj)
 
 class MIMExperiment(Experiment):
-  def __init__(self, name="mim", curve=True, random_state=42, max_attempts=[1000], pop_sizes=[100], keep_pcts = [0.2], max_concurrent_cpu = 4):
+  def __init__(self, max_iters=np.inf, name="mim", curve=True, random_state=42, max_attempts=[1000], pop_sizes=[100], keep_pcts = [0.2], max_concurrent_cpu = 4):
     self.name = name
     self.f_type="mim"
     self.curve = curve
@@ -281,7 +291,7 @@ class MIMExperiment(Experiment):
     self.keep_pcts = keep_pcts
     self.to_run = []
     self.results = []
-
+    self.max_iters = max_iters
   def enqueue_jobs(self, problem, tags = {}, name_extra="", target_fitness = [0]):
     for _max_attempt in self.max_attempts:
       for _pop_size in self.pop_sizes:       
@@ -303,6 +313,7 @@ class MIMExperiment(Experiment):
               "max_attempts":_max_attempt,
               "pop_size":_pop_size,
               "keep_pct":_keep_pct,
+              "max_iters":self.max_iters,
               "state_fitness_callback":self.delta_fn_target_reached,
               "callback_user_info":[target_fitness]
             }

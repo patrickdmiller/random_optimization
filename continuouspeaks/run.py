@@ -3,9 +3,8 @@ import argparse
 import os
 from Constants import *
 from Experiment import *
+from MLRExtra import *
 
-
-# print(" -- running ", _f_to_run, "saving in", _path, "prefix", PICKLE_PREFIX)
 if __name__ == '__main__':
   a_parser = argparse.ArgumentParser()
   a_parser.add_argument("-f", "--fs", action='append', help = "multiple run type (ga, sa, rhc, mim")
@@ -22,41 +21,39 @@ if __name__ == '__main__':
     raise Exception("no -f supplied")
 
   _seed = 42
-  _path = os.path.join(SHARED_STORAGE_PATH, 'kcolors/')
-  _nodes_and_colors = [(20,2,2),(40,4,3),(80,4,3)]
-  # _nodes_and_colors = [(10,4)]
-  _concurrent_proc_limit = 7 #MAX_CONCURRENT_CPU
-  def enqueue(exp, nodes_and_colors_tuple):
-    for n in _nodes_and_colors:
+  _path = os.path.join(SHARED_STORAGE_PATH, 'cpeaks/')
+  _sizes = [32,64,128]
+  _concurrent_proc_limit = MAX_CONCURRENT_CPU
+  def enqueue(exp, sizes):
+    for size in sizes:
       exp.enqueue_jobs(
-        problem=mlr.MaxKColorGenerator().generate(seed=_seed, number_of_nodes=n[0], max_connections_per_node=n[1], max_colors=n[2]),
-        tags={'n':n[0], 'c':n[1], 'col':n[2]},
-        name_extra=f'n{n[0]}_c{n[1]}',
-        target_fitness=[0]
+        problem=mlr.ContinuousPeaksGenerator().generate(seed=_seed, size=size),
+        tags={'size':size},
+        name_extra=f'size{size}',
+        target_fitness=[999999999]
       )
   
   if 'sa' in _f_to_run:
     sae = SAExperiment(max_concurrent_cpu=_concurrent_proc_limit, max_attempts=[10])
-    enqueue(sae, _nodes_and_colors)
+    enqueue(sae, _sizes)
     sae.parallel_run() 
     print("writing pickle")
     sae.pickle_save(_path, PICKLE_PREFIX)
-    
   if 'mim' in _f_to_run:
-    mime = MIMExperiment(max_concurrent_cpu=_concurrent_proc_limit, pop_sizes=[1600, 3200], keep_pcts=[0.1, 0.2,0.3], max_attempts=[10])
-    enqueue(mime, _nodes_and_colors)
+    mime = MIMExperiment(max_concurrent_cpu=_concurrent_proc_limit, pop_sizes=[100,200], keep_pcts=[0.25,0.5], max_attempts=[10])
+    enqueue(mime, _sizes)
     mime.parallel_run() 
     print("writing pickle")
     mime.pickle_save(_path, PICKLE_PREFIX)
   if 'rhc' in _f_to_run:
-    rhce = RHCExperiment(max_concurrent_cpu=_concurrent_proc_limit, restarts=[1,2,5,10,20],  max_attempts=[10])
-    enqueue(rhce, _nodes_and_colors)
+    rhce = RHCExperiment(max_concurrent_cpu=_concurrent_proc_limit, restarts=[1,2,5,10,20], max_attempts=[10])
+    enqueue(rhce, _sizes)
     rhce.parallel_run() 
     print("writing pickle")
     rhce.pickle_save(_path, PICKLE_PREFIX)
   if 'ga' in _f_to_run:
-    gae = GAExperiment(max_concurrent_cpu=_concurrent_proc_limit, pop_sizes=[100,200,400,800, 1600, 3200], mutation_probs=[0.1,0.2,0.3],  max_attempts=[10])
-    enqueue(gae, _nodes_and_colors)
+    gae = GAExperiment(max_concurrent_cpu=_concurrent_proc_limit, pop_sizes=[100,200], mutation_probs=[0.1,0.2], max_attempts=[10], minimum_elites=0)
+    enqueue(gae, _sizes)
     gae.parallel_run() 
     print("writing pickle")
     gae.pickle_save(_path, PICKLE_PREFIX)
